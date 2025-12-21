@@ -70,4 +70,9 @@ public class QuotesApplication {
     public List<Quote> getAll() {
         return db;
     }
+
+    @GetMapping("/health")
+    public String healthCheck() {
+        return "OK";
+    }
 }

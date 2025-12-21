@@ -74,4 +74,9 @@ public class GatewayApplication {
         restTemplate.delete(backendUrl + "/" + id);
         return Map.of("status", "deleted", "id", id);
     }
+
+    @GetMapping("/health")
+    public String healthCheck() {
+        return "OK";
+    }
 }
