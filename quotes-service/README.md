@@ -1,37 +1,32 @@
-# Quotes service
+# Quotes Service
 
-Genera frases. Es el servicio de backend.
+Este servicio gestiona una base de datos en memoria de frases inspiradoras.
 
-# Como generar la imagen
+## Descripción
 
-```
-docker build -t quotes-service .
-```
+Provee una API REST para crear, leer y borrar frases. Simula "trabajo pesado" con delays aleatorios para propósitos de prueba de observabilidad.
 
-# Como ejecutar el container
+**Nota:** Este servicio corre en el puerto **8080** (interno del contenedor).
 
-```
-docker run -d -p 8081:8081 quotes-service
-```
+## Endpoints
 
+- `GET /quotes`: Devuelve una frase aleatoria.
+- `GET /quotes/all`: Devuelve todas las frases.
+- `POST /quotes`: Crea una nueva frase.
+  - Body: `{"autor": "...", "frase": "..."}`
+- `DELETE /quotes/{id}`: Borra una frase por ID.
+- `GET /quotes/health`: Chequeo de salud.
 
-# Para listar todas las frases
+## Construcción y Ejecución
 
-```
-curl localhost:8081/quotes/all
-```
+Para construir el proyecto con Gradle:
 
-
-# Para crear una nueva frase
-
-```
-curl localhost:8081/quotes -X POST --header "Content-Type: application/json" --data '{"autor": "yo", "frase": "prueba 123"}'
+```bash
+./gradlew build
 ```
 
+Para correr el jar generado:
 
-# Para eliminar una nueva frase
-
+```bash
+java -jar build/libs/quotes-service-0.0.1-SNAPSHOT.jar
 ```
-curl localhost:8081/quotes/3 -X DELETE --header "Content-Type: application/json"
-```
-

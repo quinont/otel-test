@@ -1,66 +1,34 @@
-# Api Gateway
+# API Gateway
 
-Llama al servicio de frases, la idea es tener algun complejo sistema de generacion de frases...
+Este servicio actúa como un punto de entrada para la aplicación. Orquesta llamadas al backend de frases (quotes-service) para componer una respuesta.
 
-# Como generar la imagen
+## Descripción
 
-```
-docker build -t api-gateway .
-```
+El Gateway expone un endpoint principal `/resumen-inspirador` que realiza múltiples llamadas al servicio de quotes para simular una carga de trabajo y composición de datos.
 
-# Como ejecutar el container
+## Endpoints
 
-```
-docker network create quotes
-```
+- `GET /resumen-inspirador`: Devuelve un objeto JSON con un título, tiempo de procesamiento y una colección de frases obtenidas del backend.
+- `GET /`: Devuelve una frase aleatoria (proxy directo).
+- `POST /guardar`: Guarda una nueva frase en el backend.
+- `DELETE /borrar/{id}`: Elimina una frase en el backend.
+- `GET /health`: Chequeo de salud.
 
-```
-docker run -d -p 8081:8081 --name quotes-service --network quotes --network-alias quotes-service quotes-service
-```
+## Configuración
 
-```
-docker run -d -p 8080:8080 --name api-gateway --network quotes -e QUOTES_URL="http://quotes-service:8081/quotes" api-gateway
-```
+El servicio utiliza la variable de entorno `QUOTES_URL` para saber dónde conectar con el servicio de frases.
+Por defecto apunta a `http://localhost:8081/quotes`.
 
-## NOTA
+## Construcción y Ejecución
 
-Para que funcione el resto de los comandos, debemos tener el servicio de frases arriba, de lo contrario, todo fallara.
+Para construir el proyecto con Gradle:
 
-# Para listar una frase random
-
-```
-curl localhost:8080/
+```bash
+./gradlew build
 ```
 
-# Para un "resumen inspirador"
+Para correr el jar generado:
 
-Esto es solo para probocar "un ida y vuelta" entre el api y el quote service. La idea es simular un pensamiento pesado.
-
-```
-curl localhost:8080/resumen-inspirador
-```
-
-
-# Para guardar una frase
-
-```
-curl localhost:8080/guardar -X POST --header "Content-Type: application/json" --data '{"autor": "yo", "frase": "prueba 123"}'
-```
-
-
-# Para borrar una frase
-
-```
-curl localhost:8080/borrar/3 -X DELETE --header "Content-Type: application/json"
-```
-
-# Borrar todo el ambiente
-
-```
-docker rm -f api-gateway quotes-service
-```
-
-Ahora borramos el network
-```
-docker network rm quotes
+```bash
+java -jar build/libs/api-gateway-0.0.1-SNAPSHOT.jar
 ```
