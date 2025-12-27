@@ -19,7 +19,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-          environment:
+          env:
             - name: QUOTES_URL
               value: "http://quotes-service.quotes-ns.svc.cluster.local:8080/quotes"
 ---
