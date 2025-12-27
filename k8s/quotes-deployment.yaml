@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: quotes-service
-          image: quotes-service:latest
+          image: quinont/otel-quotes-services:1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
