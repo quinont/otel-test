@@ -22,6 +22,8 @@ spec:
           env:
             - name: QUOTES_URL
               value: "http://quotes-service.quotes-ns.svc.cluster.local:8080/quotes"
+            - name: LOG_LEVEL
+              value: "INFO"
 ---
 apiVersion: v1
 kind: Service

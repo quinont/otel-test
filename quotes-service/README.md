@@ -8,6 +8,21 @@ Provee una API REST para crear, leer y borrar frases. Simula "trabajo pesado" co
 
 **Nota:** Este servicio corre en el puerto **8080** (interno del contenedor).
 
+## Configuración
+
+El servicio utiliza la siguientes variables de entorno:
+
+- `LOG_LEVEL`: Nivel de detalle de los logs. Valores posibles: `INFO` (por defecto), `DEBUG`, `ERROR`, `WARN`, `TRACE`.
+
+## Logging
+
+El servicio cuenta con un sistema de logging que registra:
+- **Requests Entrantes**: Método HTTP y URI.
+- **Respuestas Salientes**: Estado HTTP y tiempo de procesamiento.
+- **Eventos de Negocio**: Detalles sobre el flujo de ejecución (ej. creación de frases, trabajo pesado simulado).
+
+El nivel de log puede ser ajustado dinámicamente mediante la variable de entorno `LOG_LEVEL`.
+
 ## Endpoints
 
 - `GET /quotes`: Devuelve una frase aleatoria.
