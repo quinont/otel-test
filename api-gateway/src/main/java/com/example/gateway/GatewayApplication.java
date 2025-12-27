@@ -2,6 +2,8 @@ package com.example.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -12,6 +14,8 @@ import java.util.Map;
 @SpringBootApplication
 @RestController
 public class GatewayApplication {
+
+    private static final Logger logger = LoggerFactory.getLogger(GatewayApplication.class);
 
     public static void main(String[] args) {
         System.setProperty("server.port", "8080");
@@ -37,19 +41,20 @@ public class GatewayApplication {
     @GetMapping("/resumen-inspirador")
     public Map<String, Object> getInspirationMix() {
         long start = System.currentTimeMillis();
-        System.out.println("Gateway: Procesando lógica de negocio...");
+        logger.info("Gateway: Procesando lógica de negocio...");
         simulateProcessing(500); 
 
         List<Object> frasesRecopiladas = new ArrayList<>();
 
         for (int i = 1; i <= 3; i++) {
-            System.out.println("Gateway: Llamando al backend iteración " + i);
+            logger.debug("Gateway: Llamando al backend iteración {}", i);
             Object frase = restTemplate.getForObject(backendUrl, Object.class);
             frasesRecopiladas.add(frase);
             simulateProcessing(200);
         }
 
         long totalTime = System.currentTimeMillis() - start;
+        logger.info("Gateway: Procesamiento finalizado en {} ms", totalTime);
 
         return Map.of(
             "titulo", "Mix de Inspiración Semanal",

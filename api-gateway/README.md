@@ -16,8 +16,19 @@ El Gateway expone un endpoint principal `/resumen-inspirador` que realiza múlti
 
 ## Configuración
 
-El servicio utiliza la variable de entorno `QUOTES_URL` para saber dónde conectar con el servicio de frases.
-Por defecto apunta a `http://localhost:8081/quotes`.
+El servicio utiliza la siguientes variables de entorno:
+
+- `QUOTES_URL`: URL del servicio de frases. Por defecto apunta a `http://localhost:8081/quotes`.
+- `LOG_LEVEL`: Nivel de detalle de los logs. Valores posibles: `INFO` (por defecto), `DEBUG`, `ERROR`, `WARN`, `TRACE`.
+
+## Logging
+
+El servicio cuenta con un sistema de logging que registra:
+- **Requests Entrantes**: Método HTTP y URI.
+- **Respuestas Salientes**: Estado HTTP y tiempo de procesamiento.
+- **Eventos de Negocio**: Detalles sobre el flujo de ejecución.
+
+El nivel de log puede ser ajustado dinámicamente mediante la variable de entorno `LOG_LEVEL`.
 
 ## Construcción y Ejecución
 
