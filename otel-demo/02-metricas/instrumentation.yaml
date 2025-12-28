@@ -1,0 +1,24 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: quotes-instrumentation
+  namespace: collector
+spec:
+  exporter:
+    endpoint: "http://quotes-collector.collector.svc.cluster.local:4317"
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1"
+  env:
+    - name: OTEL_JAVA_LOG_LEVEL
+      value: "DEBUG"
+    - name: OTEL_JAVA_DISABLE_LOGGING
+      value: "false"
+    - name: OTEL_METRICS_EXPORTER
+      value: "otlp"
+    - name: OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+      value: "cumulative"
+
