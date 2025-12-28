@@ -135,9 +135,9 @@ Busca la sección `scrape_configs` dentro de `prometheus.yml` y agrega el siguie
         - source_labels: [__meta_kubernetes_namespace]
           action: keep
           regex: collector
-        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
           action: keep
-          regex: quotes-collector.*
+          regex: opentelemetry-collector
         - source_labels: [__address__]
           action: replace
           regex: ([^:]+)(?::\d+)?

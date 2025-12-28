@@ -20,6 +20,21 @@ graph LR
 
 Para este laboratorio hemos utilizado **k3s**, una distribución ligera de Kubernetes certificada, ideal para desarrollo y pruebas.
 
+## Despliegue de Aplicaciones
+
+Los manifiestos base para desplegar nuestras aplicaciones (`gateway-api` y `quotes-service`) se encuentran en la carpeta raíz del proyecto, bajo el directorio `k8s/`.
+
+Allí encontrarás:
+- `namespaces.yaml`: Creación de los namespaces necesarios.
+- `gateway-deployment.yaml`: Despliegue del servicio Gateway.
+- `quotes-deployment.yaml`: Despliegue del servicio Quotes.
+
+Puedes aplicarlos con:
+
+```bash
+kubectl apply -f ../../k8s/
+```
+
 ## Exposición de Servicios
 
 Para mantener la simplicidad del laboratorio, los servicios se exponen utilizando `NodePort`. Si bien en un entorno productivo lo ideal sería implementar un Ingress Controller o un Kubernetes Gateway, `NodePort` nos permite acceder rápidamente a nuestras aplicaciones desde fuera del clúster sin configuraciones adicionales complejas.
