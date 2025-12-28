@@ -145,3 +145,7 @@ Hemos configurado un pipeline completo de observabilidad para trazas:
 1.  **Autoinstrumentación**: El agente captura datos de la JVM.
 2.  **Collector**: Recibe los datos, los procesa (y podríamos filtrarlos o transformarlos).
 3.  **Jaeger**: Almacena y visualiza las trazas para que podamos depurar problemas de rendimiento o errores.
+
+---
+
+[Siguiente: Implementación de Métricas ->](../02-metricas/README.md)

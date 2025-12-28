@@ -52,3 +52,7 @@ Nuestro objetivo principal es instrumentar el servicio de frases (`Quote Service
 Utilizaremos la **autoinstrumentación** para aplicaciones Java. Esto nos permite obtener datos de telemetría sin necesidad de modificar el código fuente de la aplicación, aprovechando la magia del Agente de OpenTelemetry.
 
 Al finalizar, exploraremos cómo cambiar los *exporters* para enviar nuestra data a sistemas externos, demostrando la flexibilidad de OpenTelemetry.
+
+---
+
+[Siguiente: Implementación de Trazas ->](../01-trazas/README.md)
