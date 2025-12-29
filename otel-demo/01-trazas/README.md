@@ -1,66 +1,70 @@
-# Instalacion
+# Implementación de Trazas (Traces) con OpenTelemetry y Jaeger
 
-Estos son los primeros pasos, aca vamos a instalar todo lo necesario para otel, y luego vamos a instalar Jaeger para ver trazas de nuesto artefacto de frases (el servicio del gateway-api y el quotes-services).
+En esta sección configuraremos todo lo necesario para instrumentar nuestra aplicación y visualizar las trazas distribuidas utilizando **Jaeger**.
 
-En siguientes carpetas vamos a estar revisando como trabajar con metricas, logs y como podemos configurar estos tres pilares para servicios de alguna nube.
+El flujo que implementaremos será el siguiente:
 
-Asi que lo que vamos a comenzar haciendo es instalando el operador de open telemetry que nos va a hacer la vida mucho mas simple para comenzar con las trazas, pero antes de ello, es importante instalar el cert manager (requisito del operador de otel).
-
-Luego de esto, vamos a instalar Jaeger y al tenerlo listo configuraremos el collector y la instrumentacion para los artefactos.
-
-La configuracion que hay que hacer a nuestro servicio de frases. y veremos las primeras trazas al llamar al servicio.
-
-## instalar cert Manager
-
-se debe instalar cert manager antes del otel-operator.
-
-```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.2/cert-manager.yaml
+```mermaid
+graph LR
+    App[Aplicación Java] -- OTLP --> Collector[OpenTelemetry Collector]
+    Collector -- OTLP --> Jaeger[Jaeger Backend]
+    User[Usuario] -- UI --> Jaeger
 ```
 
-Documentacion:
-- https://cert-manager.io/docs/installation/ 
+## 1. Requisitos Previos
 
+Antes de instalar el Operador de OpenTelemetry, necesitamos **Cert Manager**. El operador lo utiliza para gestionar los certificados de los webhooks de admisión.
 
-## instalar opentelemetry operator
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.2/cert-manager.yaml
+```
 
-Esto va a ayudar a ocupar toda la logica de otel de forma facil.
+> **Nota**: Puedes consultar la documentación oficial de instalación [aquí](https://cert-manager.io/docs/installation/).
+
+## 2. Instalación del Operador de OpenTelemetry
+
+El operador nos facilitará enormemente la gestión de componentes de OpenTelemetry en Kubernetes, como la inyección automática de agentes.
 
 ```bash
 kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/latest/download/opentelemetry-operator.yaml
 ```
 
-Paginas:
-- https://opentelemetry.io/docs/platforms/kubernetes/operator/
+> **Documentación**: [OpenTelemetry Operator](https://opentelemetry.io/docs/platforms/kubernetes/operator/).
 
+## 3. Instalación de Jaeger
 
-## Instalando Jaeger para ver trazas
+Utilizaremos Jaeger como backend para almacenar y visualizar nuestras trazas. Para este laboratorio, usaremos una instalación simple "all-in-one".
 
-Instalando jaeger con helm desde https://github.com/jaegertracing/helm-charts/tree/v2
+Para generar el despliegue, utilizamos el chart oficial de Helm y luego personalizamos el resultado.
 
-se puede ver mas de esto en la carpeta jaeger.
+1.  Agregar el repositorio de Helm de Jaeger:
+    ```bash
+    helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
+    helm repo update
+    ```
 
-Para acceder por nodeport se puede ocupar la siguiente url http://192.168.88.103:30686/search
+2.  Generar la plantilla (si quisieras hacerlo desde cero):
+    ```bash
+    helm template jaeger jaegertracing/jaeger --namespace jaeger > jaeger/deploy.yaml
+    ```
+    *Nota: El archivo `deploy.yaml` incluido en la carpeta `jaeger/` ya ha sido generado y editado previamente para asegurar que el servicio exponga los puertos necesarios mediante NodePort.*
 
-## Ahora a configurar el Collector
-
-Creamos el namespace para el collector.
+3.  Instalar utilizando el manifiesto incluido:
 
 ```bash
-kubectl create ns collector
+kubectl create ns jaeger
+kubectl apply -f jaeger/deploy.yaml
 ```
 
-Para esto necesitamos el siguiente yaml:
+Una vez desplegado, podrás acceder a la interfaz de Jaeger mediante NodePort en: `http://<TU_IP_NODO>:30686/search`
+
+## 4. Configuración del OpenTelemetry Collector
+
+El Collector es un componente intermedio que recibe, procesa y exporta telemetría. Configuraremos uno en modo `DaemonSet` para recibir datos de nuestras aplicaciones y enviarlos a Jaeger.
+
+El archivo de configuración se encuentra en `collector-config.yaml`. Aquí un extracto de lo que hace:
 
 ```yaml
-apiVersion: opentelemetry.io/v1beta1
-kind: OpenTelemetryCollector
-metadata:
-  name: quotes 
-  namespace: collector
-spec:
-  mode: daemonset
-  config:
     receivers:
       otlp:
         protocols:
@@ -84,14 +88,19 @@ spec:
           exporters: [debug, otlp/jaeger]
 ```
 
+Para aplicarlo:
 
-## Ahora la auto instrumentacion
+```bash
+kubectl apply -f collector-config.yaml
+```
 
-Primero y principal deberiamos tener los dos namespaces de gateway-ns y quotes-ns.
+Esto creará el namespace `collector` y desplegará el recurso `OpenTelemetryCollector`.
 
-Ahora, las dos apps son JAVA, por lo tanto vamos a tener que ocupar una autoinstrumentacion de JAVA.
+## 5. Autoinstrumentación
 
-Sigamos la siguiente pagina: https://opentelemetry.io/docs/platforms/kubernetes/operator/automatic/#java
+Para instrumentar nuestras aplicaciones Java sin tocar el código, definiremos un recurso `Instrumentation`. Esto le dice al Operador cómo configurar el agente de Java.
+
+El archivo se encuentra en `instrumentation.yaml`:
 
 ```yaml
 apiVersion: opentelemetry.io/v1alpha1
@@ -101,7 +110,7 @@ metadata:
   namespace: collector
 spec:
   exporter:
-    endpoint: "http://quotes-collector.collector.svc.cluster.local:4318"
+    endpoint: "http://quotes-collector.collector.svc.cluster.local:4317"
   propagators:
     - tracecontext
     - baggage
@@ -115,28 +124,39 @@ spec:
       value: "false"
 ```
 
-### Configurando los namespaces
+Aplicamos la configuración:
 
-Ahora debemos configurar los namespaces para que ocupen esta instrumentacion:
-
+```bash
+kubectl apply -f instrumentation.yaml
 ```
+
+### Inyectando la instrumentación
+
+Finalmente, debemos indicar qué namespaces o pods deben ser instrumentados. Lo haremos mediante anotaciones en los namespaces de nuestras aplicaciones (`gateway-ns` y `quotes-ns`).
+
+```bash
+# Anotar el namespace del gateway
 kubectl annotate namespace gateway-ns instrumentation.opentelemetry.io/inject-java=collector/quotes-instrumentation
-```
 
-```
+# Anotar el namespace del servicio de quotes
 kubectl annotate namespace quotes-ns instrumentation.opentelemetry.io/inject-java=collector/quotes-instrumentation
 ```
 
-Asi como hicimos la configuracion a nivel del namespace, tambien podriamos hacer la configuracion a niver del template del pod de los deployments, cosa de que si queremos podriamos tener varios deploymentes de diferentes lenguajes en el mismo namespace.
+> **Importante**: Si los pods ya estaban corriendo, deberás reiniciarlos para que la instrumentación surta efecto.
 
-## Ver en jaeger las trazas
+## 6. Verificando el Resultado
 
-Para ver las trazas que se fueron creando en jaeger, tenemos que acceder a la ui de jaeger (http://IP_DEL_SERVER:30686/search)
+1.  Genera tráfico a tu aplicación (haz algunas peticiones al Gateway).
+2.  Abre Jaeger en tu navegador: `http://<TU_IP_NODO>:30686/search`.
+3.  Deberías ver las trazas completas viajando desde el `gateway-api` hacia el `quote-services`.
 
-## Que vimos aqui?
+### ¿Qué hemos logrado?
 
-Basicamente se instalo lo necesario para comenzar con la parte de trazas.
+Hemos configurado un pipeline completo de observabilidad para trazas:
+1.  **Autoinstrumentación**: El agente captura datos de la JVM.
+2.  **Collector**: Recibe los datos, los procesa (y podríamos filtrarlos o transformarlos).
+3.  **Jaeger**: Almacena y visualiza las trazas para que podamos depurar problemas de rendimiento o errores.
 
-Se trabajo la auto instrumentacion de java para el servicio de frases.
+---
 
-Y se instalo jaeger para ver las trazas como van desde el gateway-api al quote-services
+[Siguiente: Implementación de Métricas ->](../02-metricas/README.md)
