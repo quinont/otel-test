@@ -26,7 +26,13 @@ Los archivos se encuentran en la carpeta `prometheus/`.
     helm repo update
     ```
 
-2.  Instalar utilizando el manifiesto generado:
+2.  Generar la plantilla (si quisieras hacerlo desde cero):
+    ```bash
+    helm template prometheus prometheus-community/prometheus --namespace prometheus --values prometheus/values.yaml > prometheus/deploy.yaml
+    ```
+    *Nota: El archivo `deploy.yaml` ya ha sido editado para desactivar componentes no necesarios (como AlertManager) y ajustar retenciones.*
+
+3.  Instalar utilizando el manifiesto incluido:
     ```bash
     kubectl create ns prometheus
     kubectl apply -f prometheus/deploy.yaml
@@ -42,19 +48,25 @@ Los archivos se encuentran en la carpeta `grafana/`.
     helm repo update
     ```
 
-2.  Instalar utilizando el manifiesto generado (configurado con NodePort 30300):
+2.  Generar la plantilla:
+    ```bash
+    helm template grafana grafana/grafana --namespace grafana --values grafana/values.yaml > grafana/deploy.yaml
+    ```
+    *Nota: El archivo `deploy.yaml` se editó posteriormente para habilitar NodePort en el puerto 30300.*
+
+3.  Instalar utilizando el manifiesto incluido:
     ```bash
     kubectl create ns grafana
     kubectl apply -f grafana/deploy.yaml
     ```
 
-3.  Obtener la contraseña del usuario `admin`:
+4.  Obtener la contraseña del usuario `admin`:
     ```bash
     kubectl get secret -n grafana grafana -o yaml
     ```
     *(Busca el campo `admin-password`, decodifícalo de base64 y úsalo para loguearte).*
 
-4.  Acceder a Grafana: `http://<TU_IP_NODO>:30300`
+5.  Acceder a Grafana: `http://<TU_IP_NODO>:30300`
 
 ### Conectando Grafana con Prometheus
 

@@ -35,10 +35,21 @@ kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releas
 
 Utilizaremos Jaeger como backend para almacenar y visualizar nuestras trazas. Para este laboratorio, usaremos una instalación simple "all-in-one".
 
-Puedes encontrar los archivos de despliegue en la carpeta `jaeger/`:
-- `jaeger/deploy.yaml`: Contiene el Deployment y Service.
+Para generar el despliegue, utilizamos el chart oficial de Helm y luego personalizamos el resultado.
 
-Para instalarlo (asumiendo que estás en la raíz de `otel-demo/01-trazas`):
+1.  Agregar el repositorio de Helm de Jaeger:
+    ```bash
+    helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
+    helm repo update
+    ```
+
+2.  Generar la plantilla (si quisieras hacerlo desde cero):
+    ```bash
+    helm template jaeger jaegertracing/jaeger --namespace jaeger > jaeger/deploy.yaml
+    ```
+    *Nota: El archivo `deploy.yaml` incluido en la carpeta `jaeger/` ya ha sido generado y editado previamente para asegurar que el servicio exponga los puertos necesarios mediante NodePort.*
+
+3.  Instalar utilizando el manifiesto incluido:
 
 ```bash
 kubectl create ns jaeger
